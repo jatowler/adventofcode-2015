@@ -3,20 +3,6 @@
 import itertools
 
 def fill_containers(amount, containers):
-  # If we have no containers left, we fail
-  if len(containers) == 0:
-    return None
-
-  # If our smallest container is too big, we fail
-  if containers[-1] > amount:
-    return None
-
-  # If all the remaining containers couldn't hold it, we fail
-  # This case will actually be handled correctly, but we can
-  # catch it explicitly and not worry about it
-  if amount > sum(containers):
-    return None
-
   # For every container size left, use it and try to use the rest
   combos = []
   for i, c in enumerate(containers):
@@ -28,23 +14,24 @@ def fill_containers(amount, containers):
     if amount > c:
       # Use this container and fit the remaining liquid into the
       # remaining containers
-      new_amount = amount - c
-      available_containers = containers[(i + 1):]
-
-      result = fill_containers(new_amount, available_containers)
-
-      if result is None:
-        # It can't be done, so add no combos
-        continue
+      result = fill_containers(amount - c,
+                               containers[(i + 1):])
 
       for r in result:
-        if type(r) is int:
-          combo = [c,r]
-        else:
-          combo = [c] + r
-        combos.append(combo)
+        combos.append([c] + r)
 
   return combos
+
+# From the reddit
+def fill_containers_gen(amount, containers):
+  for i, container in enumerate(containers):
+    if amount - container == 0:
+      yield [container]
+
+    for tail in fill_containers_gen(amount - container,
+                                    containers[(i + 1):]):
+      yield [container] + tail
+
 
 eggnog_amount = 150
 containers = []
@@ -70,7 +57,11 @@ print 'There are {} available combos (dumb)'.format(len(dumb_combos))
 smart_combos = fill_containers(eggnog_amount, containers)
 print 'There are {} available combos (smart):'.format(len(smart_combos))
 
+# The generator way
+gen_combos = list(fill_containers_gen(eggnog_amount, containers))
+print 'There are {} available combos (gen):'.format(len(gen_combos))
+
 min_containers = min([len(c) for c in smart_combos])
-num_min_combos = sum([1 for c in smart_combos if len(c) == min_containers])
+num_min_combos = len([c for c in smart_combos if len(c) == min_containers])
 
 print '{} combos of {} containers'.format(num_min_combos, min_containers)
