@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
 target = 36000000
-max_houses = 1000000
+# Each house gets at least ten times its house number, so we know house
+# (target/10) succeeds
+max_houses = target / 10
 houses = [0 for h in xrange(max_houses)]
 
 # No point in checking more elves than houses
